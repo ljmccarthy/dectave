@@ -1,0 +1,33 @@
+# Makerules
+# Copyright (c) 2005 Luke McCarthy
+#
+# Object building rules for the Makefile.
+
+OBJDIRS = $(SRCDIRS:%=$(OBJDIR)/%)
+SRC_CEE = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.c))
+SRC_ASM = $(foreach dir,$(SRCDIRS),$(wildcard $(dir)/*.asm))
+SOURCES = $(SRC_ASM) $(SRC_CEE)
+OBJECTS = $(SOURCES:%=$(OBJDIR)/%.o)
+DEPENDS = $(SOURCES:%=$(OBJDIR)/%.dep)
+CFLAGS += $(DEFINES:%=-D%) $(INCDIRS:%=-I%)
+LINKAGE = $(LIBDIRS:%=-L%) $(LIBS:%=-l%)
+
+GCC ?= gcc
+
+$(OBJDIR)/%.asm.o : %.asm
+	@echo " ASM    $@"
+	@nasm -felf -O1 -o$@ $<
+
+$(OBJDIR)/%.c.o : %.c
+	@echo " CC     $@"
+	@$(GCC) -c -pipe $(CFLAGS) -o$@ $< || (rm -f $@; false)
+
+$(OBJDIR)/%.c.dep : %.c
+	@mkdir -p $(dir $@)
+	@$(GCC) -MM -MT "$(basename $@).o $@" $(CFLAGS) $< > $@ \
+	  || (rm -f $@; false)
+
+$(OBJDIR)/%.asm.dep : %.asm
+	@mkdir -p $(dir $@)
+	@(echo -n $@ $(OBJDIR)/$(dir $<) > $@ && \
+	  nasm -felf -M $< >> $@) || (rm -f $@; false)

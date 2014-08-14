@@ -1,0 +1,8 @@
+timeout 0
+default 0
+color   light-blue/black light-cyan/blue
+hiddenmenu
+
+title  Dectave
+root   (fd0)
+kernel /dectave

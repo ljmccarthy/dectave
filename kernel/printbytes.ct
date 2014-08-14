@@ -1,0 +1,24 @@
+/*
+  kernel/printbytes.ct
+  Copyright (c) 2005 Luke McCarthy
+
+  Template for function to print number of
+  bytes in multiples (kilo, mega, etc.)
+*/
+
+void T_funcname(size_t n)
+{
+	uint part;
+
+	print_uint(n / T_multi, 10);
+	part = (n % T_multi) / (T_multi / 10);
+	if (part) {
+		putchar('.');
+		print_uint(part, 10);
+	}
+	print(T_multiname);
+}
+
+#undef T_funcname
+#undef T_multi
+#undef T_multiname
