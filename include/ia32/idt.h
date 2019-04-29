@@ -24,12 +24,12 @@
 /*
   task/interrupt/trap gate descriptor
 */
-struct idt_gate {
-	PACKED uint16 offset_lo;
-	PACKED uint16 selector;
-	PACKED uint8 unused;
-	PACKED uint8 type;
-	PACKED uint16 offset_hi;
+struct PACKED idt_gate {
+	uint16 offset_lo;
+	uint16 selector;
+	uint8 unused;
+	uint8 type;
+	uint16 offset_hi;
 };
 
 extern struct idt_gate idt[NUM_INTRS];

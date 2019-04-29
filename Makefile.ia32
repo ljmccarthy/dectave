@@ -7,39 +7,35 @@ SRCDIRS := kernel arch/ia32
 OBJDIR  := obj
 INCDIRS := include
 CFLAGS  := -std=c99 -Wall -Wextra -Wno-main -Werror
-CFLAGS  += -nostdinc -nostdlib -nostartfiles -nodefaultlibs -fno-builtin
-CFLAGS  += -Os -fomit-frame-pointer -finline-functions -march=pentium3
+CFLAGS  += -nostdinc -nostdlib -nostartfiles -nodefaultlibs -ffreestanding -fno-stack-protector -fno-builtin
+CFLAGS  += -Os -fomit-frame-pointer -finline-functions -m32 -march=pentium3
 DEFINES := IA32 'ARCH(h)=<ia32/h>'
-
-#GCC := /usr/gcc4/bin/gcc
 
 include Makerules
 
 .PHONY : all bochs clean qemu
 
 all : $(OBJDIR)/dectave
+
+fdimg : all
 	@mount /mnt/fdimg
 	@cp $(OBJDIR)/dectave /mnt/fdimg
 	@cp misc/menu.lst /mnt/fdimg/boot/grub
 	@umount /mnt/fdimg
 	@cp ~/boot.img obj
 
-$(OBJDIR)/dectave.o : $(OBJECTS)
+$(OBJDIR)/dectave : arch/ia32/kernel.ld $(OBJECTS)
 	@echo " LINK   $@"
-	@ld -r -o$(OBJDIR)/dectave.o $(OBJECTS)
-
-$(OBJDIR)/dectave : arch/ia32/kernel.ld $(OBJDIR)/dectave.o
-	@echo " LINK   $@"
-	@ld -Tarch/ia32/kernel.ld --gc-sections -s \
-            -o$(OBJDIR)/dectave $(OBJDIR)/dectave.o
+	@ld -Tarch/ia32/kernel.ld -m elf_i386 --gc-sections -s \
+            -o$(OBJDIR)/dectave $(OBJECTS)
 
 -include $(DEPENDS)
 
 bochs : all
 	@bochs -qf misc/bochsrc || true
 
-qemu : all
-	@qemu -fda /home/shaurz/boot.img -boot a -m 32
+run : all
+	@qemu-system-i386 -kernel $(OBJDIR)/dectave
 
 clean :
 	@rm -f $(OBJDIR)/dectave{.o,} $(OBJECTS) $(DEPENDS)
